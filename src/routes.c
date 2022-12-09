@@ -141,7 +141,7 @@ void clearconfig(airport_t *airport)
     free(labeltbl);
     labeltbl = NULL;
     mtime=-1;		/* Don't cache */
-}   
+}
 
 /* Convenience function */
 static int failconfig(FILE *h, airport_t *airport, char *buffer, const char *format, ...)
@@ -157,7 +157,7 @@ static int failconfig(FILE *h, airport_t *airport, char *buffer, const char *for
     return 1;
 }
 
-/* 
+/*
  * Read our config file
  * Return: 0=config hasn't changed, !0=config has changed and airport->state is updated
  */
@@ -171,6 +171,10 @@ int readconfig(char *pkgpath, airport_t *airport)
     train_t *currenttrain=NULL;
     userref_t *userref;
     bbox_t bounds;
+
+    sprintf(buffer, "readconfig: %s", pkgpath);
+    xplog(buffer);
+
 #ifdef DO_BENCHMARK
     struct timeval t1, t2;
     gettimeofday(&t1, NULL);		/* start */
