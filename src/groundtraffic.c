@@ -1108,9 +1108,10 @@ void deactivate(airport_t *airport)
 
     for(route=airport->routes; route; route=route->next)
     {
+        XPLMDestroyInstance(route->instance_ref); // nst0022
+        route->instance_ref = NULL;
         XPLMUnloadObject(route->object.objref);
         route->object.objref=0;
-        XPLMDestroyInstance(route->instance_ref); // nst0022
     }
 
     /* Unregister per-route DataRefs */
