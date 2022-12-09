@@ -112,8 +112,10 @@ static collision_t* iscollision(route_t *route, int tryno)
 /* For drawing route nodes. Relies on the fact that the OpenGL view is not clipped to our window */
 void labelcallback(XPLMWindowID inWindowID, void *inRefcon)
 {
+#if 0 /// HT
     if (airport.drawroutes)	/* labelwin is not destroyed immediately on deactivation */
         drawdebug2d();
+#endif /// HT
 }
 
 
@@ -214,6 +216,7 @@ int drawcallback()                                                           // 
         /* draw route paths */
         if (airport.drawroutes)
         {
+#if 0  /// HT
 #ifdef DEBUG
             int planeno;
 #endif
@@ -240,6 +243,7 @@ int drawcallback()                                                           // 
             }
             glEnd();
 #endif
+#endif /// HT
         }
     }
 

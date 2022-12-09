@@ -10,7 +10,7 @@
 #include "planes.h"
 #include "bbox.h"
 
-#if IBM
+#ifdef _MSC_VER
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD ul_reason, LPVOID lpReserved)
 { return TRUE; }
 #endif
@@ -63,9 +63,10 @@ PLUGIN_API int XPluginStart(char *outName, char *outSignature, char *outDescript
     time_t t;
     struct tm *tm;
 
-    sprintf(outName, "GroundTraffic v%.2f", VERSION);
+    sprintf(outName, "GroundTraffic v%s", VERSION);
     strcpy(outSignature, "Marginal.GroundTraffic");
     strcpy(outDescription, "Shows animated airport ground vehicle traffic. Licensed under LGPL v2.1.");
+    xplog("startup v" VERSION);
 
     ref_plane_lat=XPLMFindDataRef("sim/flightmodel/position/latitude");
     ref_plane_lon=XPLMFindDataRef("sim/flightmodel/position/longitude");
@@ -153,6 +154,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, long inMessage, void 
 {
     if (inMessage==XPLM_MSG_AIRPORT_LOADED)
     {
+        xplog(pkgpath);
         readconfig(pkgpath, &airport);	/* Check for edits */
 
         if ((airport.state == active || airport.state == activating) && !intilerange(airport.tower))
