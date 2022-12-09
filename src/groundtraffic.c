@@ -284,7 +284,8 @@ static float flightcallback(float inElapsedSinceLastCall, float inElapsedTimeSin
     {
         check_range(&airport);
         //return -ACTIVE_POLL; // nst0022 2.2
-        return -1;             // nst0022 2.2 every frame
+        //return -1;             // nst0022 2.2 every frame
+        return 0.1;     // delta in seconds
     }
 }
 
