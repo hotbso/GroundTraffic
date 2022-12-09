@@ -8,7 +8,7 @@ SOURCES=$(wildcard *.c)
 SOURCES=groundtraffic.c planes.c routes.c draw.c
 OBJECTS=$(SOURCES:.c=.o)
 SDK=../../SDK
-PLUGDIR=/e/X-Plane-12/Custom Scenery/Skiathos Island National Airport/plugins/GroundTraffic
+PLUGDIR=/e/X-Plane-12/Custom Scenery/GroundTraffic-master
 
 CC=x86_64-w64-mingw32-gcc
 LD=x86_64-w64-mingw32-gcc
