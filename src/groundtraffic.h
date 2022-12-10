@@ -140,8 +140,6 @@ typedef enum
     dataref_count
 } dataref_t;
 
-float *fill_dataref_values();
-
 /* Geolocation */
 typedef struct
 {
@@ -400,6 +398,7 @@ void drawdebug3d(int drawnodes, GLint view[4]);
 void drawdebug2d();
 int drawmap3d(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon);
 int drawmap2d(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon);
+void get_dataref_values(const route_t *route, float *dataref_values);
 
 
 /* Globals */

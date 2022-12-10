@@ -131,6 +131,8 @@ void labelcallback(XPLMWindowID inWindowID, void *inRefcon)
 static void drawroutes()
 {
     float view_x, view_y, view_z;
+    float dataref_values[dataref_count];
+
 
     view_x=XPLMGetDataf(ref_view_x);
     view_y=XPLMGetDataf(ref_view_y);
@@ -139,37 +141,17 @@ static void drawroutes()
     drawroute=airport.routes;
     while (drawroute)
     {
-        // nst0022 batch does not work with XPLMInstanceSetPosition(),
-        //         instead, the following 'then' needs to be executed at all times
+        /* Have to check draw range every frame since "now" isn't updated while sim paused */
+        if (indrawrange(drawroute->drawinfo->x-view_x, drawroute->drawinfo->y-view_y,
+                        drawroute->drawinfo->z-view_z, drawroute->object.drawlod * lod_factor)) {
+                get_dataref_values(drawroute, dataref_values);
+                XPLMInstanceSetPosition(drawroute->instance_ref, drawroute->drawinfo, dataref_values);
+            }
 
-        //if (drawroute->state.hasdataref)	/* Objects that use a per-route DataRef can't be batched */
-        //{
-            /* Have to check draw range every frame since "now" isn't updated while sim paused */
-            if (indrawrange(drawroute->drawinfo->x-view_x, drawroute->drawinfo->y-view_y, drawroute->drawinfo->z-view_z, drawroute->object.drawlod * lod_factor))
-                XPLMInstanceSetPosition(drawroute->instance_ref, drawroute->drawinfo, fill_dataref_values());
+        if (drawroute->next && drawroute->object.objref == drawroute->next->object.objref)
+            drawroute->next->state.hasdataref = -1;	/* propagate flag to all routes using this objref */
 
-            if (drawroute->next && drawroute->object.objref == drawroute->next->object.objref)
-                drawroute->next->state.hasdataref = -1;	/* propagate flag to all routes using this objref */
-
-            drawroute=drawroute->next;
-        //}
-        //else
-        //{
-        //    route_t *route, *first = 0, *last = 0;
-
-        //    for (route=drawroute; route && route->object.objref==drawroute->object.objref; route=route->next)
-        //        /* Have to check draw range every frame since "now" isn't updated while sim paused */
-        //        if (indrawrange(route->drawinfo->x-view_x, route->drawinfo->y-view_y, route->drawinfo->z-view_z, route->object.drawlod * lod_factor))
-        //        {
-        //            if (!first) first = route;
-        //            last = route;
-        //        }
-
-        //    if (first)
-        //        XPLMDrawObjects(drawroute->object.objref, 1 + last->drawinfo - first->drawinfo, first->drawinfo, is_night, 1);
-
-        //    drawroute=route;
-        //}
+        drawroute=drawroute->next;
     }
 }
 

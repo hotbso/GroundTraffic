@@ -43,8 +43,6 @@ const char *datarefs[] = {
     NULL    // terminator for XPLMCreateInstance call
 };
 
-static float dataref_values[dataref_count];    // array of dataref values to be passed with XPLMInstanceSetPosition
-
 /* In this file */
 static XPLMWindowID labelwin = 0;
 static int done_new_airport = 0;
@@ -386,11 +384,8 @@ static int intrefcallback(XPLMDataRef inRefcon)
 }
 
 /* fill dataref values */
-float *fill_dataref_values()
+void get_dataref_values(const route_t *route, float *dataref_values)
 {
-    route_t *route;
-    if (!(route = datarefroute())) return dataref_values;  // FIXME: zero out whole block ?
-
     dataref_values[distance] = route->distance;
  
     if (route->state.frozen||route->state.paused||route->state.waiting||route->state.dataref||route->state.collision)
@@ -417,7 +412,6 @@ float *fill_dataref_values()
 #ifdef DO_BENCHMARK
     dataref_values[drawtime] =drawframes ? (float) drawcumul / (float) drawframes : 0;
 #endif
-    return dataref_values;
 }
 
 
