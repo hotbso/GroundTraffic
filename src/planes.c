@@ -68,7 +68,7 @@ int count_planes()
     if (plane_count) return plane_count;
 
     XPLMCountAircraft(&plane_count, &i, &controller);	/* Use total, cos active may increase later */
-    assert (plane_count > 0 && plane_count <= MAX_PLANES);
+    assert (plane_count > 0);
     if (plane_count > MAX_PLANES) plane_count = MAX_PLANES;
 
     for (i=0; i<plane_count; i++)
