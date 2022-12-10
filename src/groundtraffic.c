@@ -192,11 +192,13 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFrom, long inMessage, void 
 }
 
 
-/* Check whether we've come into or gone out of range */
-static void check_range(airport_t *airport)
+/* Check whether we've come into or gone out of range, return 1 if ready to draw */
+static int check_range(airport_t *airport)
 {
     double airport_x, airport_y, airport_z;
     float view_x, view_y, view_z;
+
+    int result = 0;
 
     if (airport->state == inactive)
     {
@@ -233,9 +235,11 @@ static void check_range(airport_t *airport)
             else if (airport->state == activating && !activating_route)
                 activate2(airport);	/* obj loading is complete - check for completion of other tasks */
             else if (airport->state == active && !activating_route) // nst0022 2.2
-                drawcallback();                                     // nst0022 2.2
+                result = 1;
         }
     }
+
+    return result;
 }
 
 
@@ -282,10 +286,9 @@ static float flightcallback(float inElapsedSinceLastCall, float inElapsedTimeSin
     }
     else
     {
-        check_range(&airport);
-        //return -ACTIVE_POLL; // nst0022 2.2
-        //return -1;             // nst0022 2.2 every frame
-        return 0.1;     // delta in seconds
+        if (check_range(&airport))
+            drawcallback();
+        return (1.0 / 15);     // 15 position changes, delta in seconds
     }
 }
 
