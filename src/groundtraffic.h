@@ -363,7 +363,7 @@ typedef struct
 
 /* Worker thread */
 /* Align to cache-line - http://software.intel.com/en-us/articles/avoiding-and-identifying-false-sharing-among-threads */
-#if IBM
+#if _MSC_VER
 typedef __declspec(align(64)) struct
 #else
 typedef struct __attribute__((aligned(64)))
