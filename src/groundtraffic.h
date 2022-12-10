@@ -140,6 +140,8 @@ typedef enum
     dataref_count
 } dataref_t;
 
+float *fill_dataref_values();
+
 /* Geolocation */
 typedef struct
 {

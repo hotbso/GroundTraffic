@@ -32,7 +32,7 @@ struct timeval activating_loading_t1, activating_elapsed_t1;
 #endif
 
 /* Published DataRefs. Must be in same order as dataref_t */
-const char datarefs[dataref_count][60] = {
+const char *datarefs[] = {
     REF_DISTANCE, REF_SPEED, REF_STEER, REF_NODE_LAST, REF_NODE_LAST_DISTANCE, REF_NODE_NEXT, REF_NODE_NEXT_DISTANCE,
 #ifdef DEBUG
     REF_LOD, REF_RANGE,
@@ -40,7 +40,10 @@ const char datarefs[dataref_count][60] = {
 #ifdef DO_BENCHMARK
     REF_DRAWTIME,
 #endif
+    NULL    // terminator for XPLMCreateInstance call
 };
+
+static float dataref_values[dataref_count];    // array of dataref values to be passed with XPLMInstanceSetPosition
 
 /* In this file */
 static XPLMWindowID labelwin = 0;
@@ -83,7 +86,7 @@ PLUGIN_API int XPluginStart(char *outName, char *outSignature, char *outDescript
     ref_probe    =XPLMCreateProbe(xplm_ProbeY);
     if (!(ref_view_x && ref_view_y && ref_view_z && ref_night && ref_monotonic && ref_doy && ref_tod && setup_plane_refs())) return xplog("Can't access X-Plane DataRefs!");
 
-    XPLMEnableFeature("XPLM_WANTS_REFLECTIONS", 0);	/* Let's assume there aren't a lot of puddles around */
+    //XPLMEnableFeature("XPLM_WANTS_REFLECTIONS", 0);	/* Let's assume there aren't a lot of puddles around */
     XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);	/* Get paths in posix format */
     XPLMGetPluginInfo(XPLMGetMyID(), NULL, buffer, NULL, NULL);
 
@@ -288,6 +291,7 @@ static float flightcallback(float inElapsedSinceLastCall, float inElapsedTimeSin
     {
         if (check_range(&airport))
             drawcallback();
+
         return (1.0 / 15);     // 15 position changes, delta in seconds
     }
 }
@@ -320,7 +324,7 @@ static inline route_t *datarefroute()
 }
 
 
-/* dataref accesor callback */
+/* dataref accesor callback, these are only for use by dataref tool */
 static float floatrefcallback(XPLMDataRef inDataRef)
 {
     route_t *route;
@@ -379,6 +383,41 @@ static int intrefcallback(XPLMDataRef inRefcon)
     default:
         return 0;
     }
+}
+
+/* fill dataref values */
+float *fill_dataref_values()
+{
+    route_t *route;
+    if (!(route = datarefroute())) return dataref_values;  // FIXME: zero out whole block ?
+
+    dataref_values[distance] = route->distance;
+ 
+    if (route->state.frozen||route->state.paused||route->state.waiting||route->state.dataref||route->state.collision)
+        dataref_values[speed] = 0;
+    else if (route->state.backingup)
+        dataref_values[speed] = -route->speed;
+    else
+        dataref_values[speed] = route->speed;
+
+    dataref_values[steer] = route->steer;
+    dataref_values[node_last] = route->last_node;
+    dataref_values[node_last_distance] = route->distance - route->last_distance;
+    dataref_values[node_next] = route->next_node;
+    dataref_values[node_next_distance] = route->next_distance - (route->distance - route->last_distance);
+   
+#ifdef DEBUG
+    dataref_values[lod] = route->object.drawlod * lod_factor;
+    float range_x = route->drawinfo->x - XPLMGetDataf(ref_view_x);
+    float range_y = route->drawinfo->y - XPLMGetDataf(ref_view_y);
+    float range_z = route->drawinfo->z - XPLMGetDataf(ref_view_z);
+    dataref_values[range] = sqrtf(range_x*range_x + range_y*range_y + range_z*range_z);
+#endif
+
+#ifdef DO_BENCHMARK
+    dataref_values[drawtime] =drawframes ? (float) drawcumul / (float) drawframes : 0;
+#endif
+    return dataref_values;
 }
 
 
@@ -621,7 +660,6 @@ static void activate2(airport_t *airport)
 {
     route_t *route, **routes;
     int count, i;
-    const char *drefs[] = {NULL}; // nst0022 1.62
 #ifdef DO_BENCHMARK
     struct timeval t2;
     char msg[64];
@@ -699,7 +737,7 @@ static void activate2(airport_t *airport)
     {
         routes[i]->drawinfo = airport->drawinfo + i;
         routes[i]->next = i < count-1 ? routes[i+1] : NULL;
-        routes[i]->instance_ref = XPLMCreateInstance(routes[i]->object.objref, drefs); // nst0022 1.62
+        routes[i]->instance_ref = XPLMCreateInstance(routes[i]->object.objref, datarefs);
     }
     free(routes);
 
