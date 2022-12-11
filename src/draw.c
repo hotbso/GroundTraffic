@@ -10,7 +10,6 @@
 #include "planes.h"
 
 /* Globals */
-route_t *drawroute = NULL;	/* Global so can be accessed in DataRef callback */
 float last_frame=0;		/* last time we recalculated */
 static int is_night=0;		/* was night last time we recalculated? */
 float lod_factor;		/* screen_width / lod_bias at time of last draw */
@@ -119,15 +118,8 @@ void labelcallback(XPLMWindowID inWindowID, void *inRefcon)
 }
 
 
-/* Actually do the drawing. Uses global drawroute so DataRef callbacks have access to the route being drawn.
- * Tries to batch concurrent routes that use the same XPLMObjectRef (note: not textual name since one name
- * might map to multiple library objects). Route linked list was sorted in XPLMObjectRef order during activate().
- * We can't batch if the object uses per-route DataRefs since we wouldn't know which route/object the accessor
- * callback was called for.
- * Note we don't know that an object uses per-route DataRefs until we draw it for the first time when the
- * accessor callback will set route->state.hasdataref.
- * If some objects are in range but others not then we issue one XPLMDrawObjects() call that spans all those
- * in range, since this seems to be cheaper than multiple calls even if more drawing results. */
+/* Actually do the drawing.
+ * Let the XPLMInstance API do the work */
 static void drawroutes()
 {
     float view_x, view_y, view_z;
@@ -138,7 +130,7 @@ static void drawroutes()
     view_y=XPLMGetDataf(ref_view_y);
     view_z=XPLMGetDataf(ref_view_z);
 
-    drawroute=airport.routes;
+    route_t *drawroute=airport.routes;
     while (drawroute)
     {
         /* Have to check draw range every frame since "now" isn't updated while sim paused */
@@ -148,16 +140,12 @@ static void drawroutes()
                 XPLMInstanceSetPosition(drawroute->instance_ref, drawroute->drawinfo, dataref_values);
             }
 
-        if (drawroute->next && drawroute->object.objref == drawroute->next->object.objref)
-            drawroute->next->state.hasdataref = -1;	/* propagate flag to all routes using this objref */
-
         drawroute=drawroute->next;
     }
 }
 
 
 /* Main update and draw loop */
-//int drawcallback(XPLMDrawingPhase inPhase, int inIsBefore, void *inRefcon) // nst0022 2.2
 int drawcallback()                                                           // nst0022 2.2
 {
     double airport_x, airport_y, airport_z;

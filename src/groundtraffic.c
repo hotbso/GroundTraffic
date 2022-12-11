@@ -305,28 +305,11 @@ int xplog(char *msg)
 }
 
 
-/* Identify the route for per-route dataref accessor callbacks */
-static inline route_t *datarefroute()
-{
-    if (drawroute)
-    {
-        /* We're in the middle of XPLMDrawObjects() in drawroutes() */
-        drawroute->state.hasdataref = -1;
-        return drawroute;
-    }
-    else
-    {
-	/* Probably DataRefEditor calling - return data for first route */
-        return (airport.state == active) ? airport.firstroute : NULL;
-    }
-}
-
-
 /* dataref accesor callback, these are only for use by dataref tool */
 static float floatrefcallback(XPLMDataRef inDataRef)
 {
-    route_t *route;
-    if (!(route = datarefroute())) return 0;
+    route_t *route = (airport.state == active) ? airport.firstroute : NULL;
+    if (NULL == route) return 0;
 
     switch ((dataref_t) ((intptr_t) inDataRef))
     {
@@ -369,8 +352,8 @@ static float floatrefcallback(XPLMDataRef inDataRef)
 /* dataref accesor callback */
 static int intrefcallback(XPLMDataRef inRefcon)
 {
-    route_t *route;
-    if (!(route = datarefroute())) return 0;
+    route_t *route = (airport.state == active) ? airport.firstroute : NULL;
+    if (NULL == route) return 0;
 
     switch ((dataref_t) ((intptr_t) inRefcon))
     {
@@ -423,7 +406,10 @@ static int varrefcallback(XPLMDataRef inRefCon, float *outValues, int inOffset, 
 
     if (outValues==NULL)
         return MAX_VAR;
-    else if (!(route = datarefroute()) || inMax<=0 || inOffset<0 || inOffset>=MAX_VAR || !route->varrefs)
+
+    route = (airport.state == active) ? airport.firstroute : NULL;
+
+    if (!route || inMax<=0 || inOffset<0 || inOffset>=MAX_VAR || !route->varrefs)
         return 0;
 
     if (inMax+inOffset > MAX_VAR)
