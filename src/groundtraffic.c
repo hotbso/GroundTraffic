@@ -290,7 +290,7 @@ static float flightcallback(float inElapsedSinceLastCall, float inElapsedTimeSin
         if (check_range(&airport))
             drawcallback();
 
-        return (1.0 / 15);     // 15 position changes, delta in seconds
+        return -1;
     }
 }
 
