@@ -1,17 +1,20 @@
 .SUFFIXES: .obj
 
+OBJDIR=./OBJ_win
+
 include ..\version.mak
 
-TARGET=win.xpl
+TARGET=$(OBJDIR)/win.xpl
 HEADERS=$(wildcard *.h)
 SOURCES=$(wildcard *.c)
 SOURCES=groundtraffic.c planes.c routes.c draw.c
-OBJECTS=$(SOURCES:.c=.o)
+OBJECTS=$(addprefix $(OBJDIR)/, $(SOURCES:.c=.o))
+
 SDK=../../SDK
 PLUGDIR=/e/X-Plane-12/Custom Scenery/GroundTraffic-master
 
-CC=x86_64-w64-mingw32-gcc
-LD=x86_64-w64-mingw32-gcc
+CC=gcc
+LD=gcc
 
 override CFLAGS+=-mdll -g0 -O2 -s -Wall -fdiagnostics-color -Wno-format-overflow -DWINDOWS -DWIN32 \
 	-I$(SDK)/CHeaders/XPLM -DIBM=1 -DVERSION=\"$(VERSION)\"
@@ -21,9 +24,10 @@ LIBS= -L$(SDK)/Libraries/Win -lXPLM_64
 
 
 all: $(TARGET)
-
-.c.obj:
-	$(CC) $(CFLAGS) -c $<
+     $(shell [ -d $(OBJDIR) ] || mkdir $(OBJDIR))
+   
+$(OBJDIR)/%.o: %.c $(HEADERS)
+	$(CC) $(CFLAGS) -c -o $@  $<
 	
 $(TARGET): $(OBJECTS)
 	$(LD) -o $(TARGET) $(LDFLAGS) $(OBJECTS) $(LIBS)
@@ -37,8 +41,3 @@ install: $(TARGET)
 	cp -p $(TARGET) "$(PLUGDIR)/."
 	cp -p $(TARGET) "$(PLUGDIR)/64/."
 
-# create the whole plugin directory
-plugin: $(TARGET)
-	mkdir -p "$(PLUGDIR)/64"
-	cp -p $(TARGET) "$(PLUGDIR)/."
-	cp -p $(TARGET) "$(PLUGDIR)/64/."

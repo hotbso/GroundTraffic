@@ -1,0 +1,30 @@
+PLUGDIR=../../../../X-Plane-12/Custom Scenery/GroundTraffic-master
+include ../version.mak
+
+SDK=../../SDK
+OBJDIR=./OBJ_lx
+
+TARGET=$(OBJDIR)/lin.xpl
+HEADERS=$(wildcard *.h)
+SOURCES=groundtraffic.c planes.c routes.c draw.c
+OBJECTS=$(addprefix $(OBJDIR)/, $(SOURCES:.c=.o))
+
+CFLAGS=-DVERSION=\"$(VERSION)\" \
+    -Wall -Wextra -I$(SDK)/CHeaders/XPLM  -I$(SDK)/CHeaders/Widgets -fPIC -DLIN=1 -fno-stack-protector
+
+LNFLAGS=-shared -rdynamic -nodefaultlibs -undefined_warning
+LIBS=
+
+all: $(TARGET)
+    $(shell [ -d $(OBJDIR) ] || mkdir $(OBJDIR))
+
+$(OBJDIR)/%.o: %.c $(HEADERS) ../version.mak
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+$(TARGET): $(OBJECTS)
+	$(CC) -o $(TARGET) $(LNFLAGS) $(OBJECTS) $(LIBS)
+	cp -p $(TARGET) "$(PLUGDIR)/."
+	cp -p $(TARGET) "$(PLUGDIR)/64/."
+
+clean:
+	rm -f $(OBJECTS) $(TARGET)
